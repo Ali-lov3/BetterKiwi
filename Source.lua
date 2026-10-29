@@ -1323,6 +1323,8 @@ local Library do
 
         MenuKeybind = tostring(Enum.KeyCode.Z),
         Flags = { },
+        IgnoredFlags = { },
+        MobileButton = nil,
 
         Tween = {
             Time = 0.3,
@@ -2010,13 +2012,29 @@ local Library do
     Library.Theme = TableClone(Themes["Preset"])
     Library.Themes = Themes
 
-    if not isfile(Library.Folders.Directory .. "/AutoLoadConfig (do not modify this).json") then
-        writefile(Library.Folders.Directory .. "/AutoLoadConfig (do not modify this).json", "")
+    Library.SetConfigFolder = function(self, Name)
+        Name = string.match(string.gsub(tostring(Name), "[^%w _%-]", ""), "^%s*(.-)%s*$")
+
+        if not Name or Name == "" then
+            return
+        end
+
+        self.Folders.Directory = Name
+        self.Folders.Configs = Name .. "/Configs"
+        self.Folders.Themes = Name .. "/Themes"
+
+        for _, Path in {self.Folders.Directory, self.Folders.Configs, self.Folders.Themes} do
+            if not isfolder(Path) then
+                makefolder(Path)
+            end
+        end
+
+        if not isfile(self.Folders.Directory .. "/AutoLoadConfig.txt") then
+            writefile(self.Folders.Directory .. "/AutoLoadConfig.txt", "")
+        end
     end
 
-    if not isfile(Library.Folders.Directory .. "/AutoLoadTheme (do not modify this).json") then
-        writefile(Library.Folders.Directory .. "/AutoLoadTheme (do not modify this).json", "")
-    end
+    Library:SetConfigFolder(Library.Folders.Directory)
 
     Library.Holder = Instances:Create("ScreenGui", {
         Parent = game:GetService("CoreGui"),
@@ -2179,6 +2197,10 @@ local Library do
 
         local Success, Result = Library:SafeCall(function()
             for Index, Value in Library.Flags do
+                if Library.IgnoredFlags[Index] then
+                    continue
+                end
+
                 if type(Value) == "table" and Value.Key then
                     Config[Index] = {Key = tostring(Value.Key), Mode = Value.Mode}
                 elseif type(Value) == "table" and Value.Color then
@@ -2193,13 +2215,13 @@ local Library do
     end
 
     Library.LoadConfig = function(self, Config)
-        local Decoded = HttpService:JSONDecode(Config)
+        local Success, Result = pcall(function()
+            local Decoded = HttpService:JSONDecode(Config)
 
-        local Success, Result = Library:SafeCall(function()
             for Index, Value in Decoded do
                 local SetFunction = Library.SetFlags[Index]
 
-                if not SetFunction then
+                if not SetFunction or Library.IgnoredFlags[Index] then
                     continue
                 end
 
@@ -2221,56 +2243,106 @@ local Library do
         return FromHSV(Hue, Saturation, Value / 1.35)
     end
 
-    Library.DeleteConfig = function(self, Config)
-        if isfile(Library.Folders.Configs .. "/" .. Config) then
-            delfile(Library.Folders.Configs .. "/" .. Config)
-            Library:Notification({
-                Name = "Success",
-                Description = "Succesfully deleted config: ".. Config .. ".json",
-                Duration = 5,
-                Icon = "116339777575852",
-                IconColor = FromRGB(52, 255, 164)
-            })
-        end
+    Library.ConfigPath = function(self, Name)
+        return self.Folders.Configs .. "/" .. Name .. ".json"
     end
 
-    Library.SaveConfig = function(self, Config)
-        if isfile(Library.Folders.Configs .. "/" .. Config .. ".json") then
-            writefile(Library.Folders.Configs .. "/" .. Config .. ".json", Library:GetConfig())
-            Library:Notification({
-                Name = "Success",
-                Description = "Succesfully saved config: ".. Config .. ".json",
-                Duration = 5,
-                Icon = "116339777575852",
-                IconColor = FromRGB(52, 255, 164)
-            })
-        end
+    Library.Notify = function(self, Success, Description)
+        Library:Notification({
+            Name = Success and "Success" or "Error!",
+            Description = Description,
+            Duration = 5,
+            Icon = Success and "116339777575852" or "97118059177470",
+            IconColor = Success and FromRGB(52, 255, 164) or FromRGB(255, 120, 120)
+        })
     end
 
-    Library.RefreshConfigsList = function(self, Element)
-        local CurrentList = { }
-        local List = { }
+    Library.GetConfigNames = function(self)
+        local Names = { }
 
-        local ConfigFolderName = StringGSub(Library.Folders.Configs, Library.Folders.Directory .. "/", "")
+        for _, Path in listfiles(self.Folders.Configs) do
+            local FileName = string.match(Path, "([^/\\]+)$")
 
-        for Index, Value in listfiles(Library.Folders.Configs) do
-            local FileName = StringGSub(Value, Library.Folders.Directory .. "\\" .. ConfigFolderName .. "\\", "")
-            List[Index] = FileName
-        end
-
-        local IsNew = #List ~= CurrentList
-
-        if not IsNew then
-            for Index = 1, #List do
-                if List[Index] ~= CurrentList[Index] then
-                    IsNew = true
-                    break
-                end
+            if FileName and string.lower(string.sub(FileName, -5)) == ".json" then
+                TableInsert(Names, string.sub(FileName, 1, -6))
             end
-        else
-            CurrentList = List
-            Element:Refresh(CurrentList)
         end
+
+        table.sort(Names)
+
+        return Names
+    end
+
+    Library.GetAutoload = function(self)
+        local Path = self.Folders.Directory .. "/AutoLoadConfig.txt"
+
+        if not isfile(Path) then
+            return nil
+        end
+
+        local Name = readfile(Path)
+
+        if Name == "" then
+            return nil
+        end
+
+        return Name
+    end
+
+    Library.SetAutoload = function(self, Name)
+        writefile(self.Folders.Directory .. "/AutoLoadConfig.txt", Name)
+    end
+
+    Library.RemoveAutoload = function(self)
+        writefile(self.Folders.Directory .. "/AutoLoadConfig.txt", "")
+    end
+
+    Library.SaveConfig = function(self, Name)
+        local Success, Result = pcall(function()
+            writefile(Library:ConfigPath(Name), Library:GetConfig())
+        end)
+
+        if Success then
+            Library:Notify(true, "Saved config: " .. Name)
+        else
+            Library:Notify(false, "Failed to save config:\n" .. tostring(Result))
+        end
+
+        return Success
+    end
+
+    Library.LoadConfigFile = function(self, Name)
+        if not isfile(Library:ConfigPath(Name)) then
+            Library:Notify(false, "Config does not exist: " .. Name)
+            return false
+        end
+
+        local Success, Result = Library:LoadConfig(readfile(Library:ConfigPath(Name)))
+
+        if Success then
+            Library:Notify(true, "Loaded config: " .. Name)
+        else
+            Library:Notify(false, "Failed to load config:\n" .. tostring(Result))
+        end
+
+        return Success
+    end
+
+    Library.DeleteConfig = function(self, Name)
+        if not isfile(Library:ConfigPath(Name)) then
+            Library:Notify(false, "Config does not exist: " .. Name)
+            return false
+        end
+
+        delfile(Library:ConfigPath(Name))
+
+        if Library:GetAutoload() == Name then
+            Library:RemoveAutoload()
+        end
+
+        Library:Notify(true, "Deleted config: " .. Name)
+
+        return true
     end
 
     Library.ChangeItemTheme = function(self, Item, Properties)
@@ -7052,8 +7124,302 @@ local Library do
             return KeybindList
         end
 
+        Library.MobileToggle = function(self, Window)
+            local Button = Instances:Create("TextButton", {
+                Parent = Library.Holder.Instance,
+                Name = "\0",
+                FontFace = Library.Font,
+                Text = "",
+                AutoButtonColor = false,
+                BorderSizePixel = 0,
+                Size = UDim2New(0, 44, 0, 44),
+                Position = UDim2New(0, 12, 0.5, -22),
+                ZIndex = 50,
+                BackgroundColor3 = Library.Theme.Background
+            })  Button:AddToTheme({BackgroundColor3 = "Background"})
+
+            Instances:Create("UICorner", {
+                Parent = Button.Instance,
+                Name = "\0",
+                CornerRadius = UDimNew(0, 10)
+            })
+
+            local Stroke = Instances:Create("UIStroke", {
+                Parent = Button.Instance,
+                Name = "\0",
+                Color = Library.Theme.Border,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            })  Stroke:AddToTheme({Color = "Border"})
+
+            Instances:Create("ImageLabel", {
+                Parent = Button.Instance,
+                Name = "\0",
+                BackgroundTransparency = 1,
+                AnchorPoint = Vector2New(0.5, 0.5),
+                Position = UDim2New(0.5, 0, 0.5, 0),
+                Size = UDim2New(0, 24, 0, 24),
+                ZIndex = 51,
+                Image = "rbxassetid://" .. tostring(Window.Logo)
+            })
+
+            Button:MakeDraggable()
+
+            Button:Connect("MouseButton1Click", function()
+                Window:SetOpen(not Window.IsOpen)
+            end)
+
+            Library.MobileButton = Button
+
+            return Button
+        end
+
+        Library.SettingManager = function(self, Data)
+            Data = Data or { }
+
+            local Window = self
+            local Icon = Data.Icon or Data.icon or Window.Logo
+
+            if Data.ConfigFolder or Data.configfolder then
+                Library:SetConfigFolder(Data.ConfigFolder or Data.configfolder)
+            end
+
+            local SettingsPage = Window:Page({
+                Name = Data.Name or Data.name or "Settings",
+                Icon = Icon,
+                Columns = 2,
+                SubPages = false
+            })
+
+            local ConfigSection = SettingsPage:Section({
+                Name = "Config",
+                Icon = Icon,
+                Side = 1
+            })
+
+            local MenuSection = SettingsPage:Section({
+                Name = "Menu",
+                Icon = Icon,
+                Side = 2
+            })
+
+            local ThemeSection = SettingsPage:Section({
+                Name = "Theme",
+                Icon = Icon,
+                Side = 2
+            })
+
+            for _, Flag in {"SettingManager Config List", "SettingManager Config Name", "SettingManager Theme Preset"} do
+                Library.IgnoredFlags[Flag] = true
+            end
+
+            local ConfigDropdown
+            local ConfigTextbox
+            local AutoLabel
+
+            local function UpdateAutoLabel()
+                AutoLabel:SetText("Auto Load: " .. (Library:GetAutoload() or "None"))
+            end
+
+            local function RefreshList(Select)
+                ConfigDropdown:Refresh(Library:GetConfigNames())
+
+                if Select then
+                    ConfigDropdown:Set(Select)
+                end
+            end
+
+            local function GetName()
+                local Name = string.match(string.gsub(tostring(ConfigTextbox:Get() or ""), "[^%w _%-]", ""), "^%s*(.-)%s*$")
+
+                if Name == "" then
+                    Name = ConfigDropdown:Get() or ""
+                end
+
+                return Name
+            end
+
+            AutoLabel = ConfigSection:Label("Auto Load: None", "Left")
+
+            ConfigDropdown = ConfigSection:Dropdown({
+                Name = "Configs",
+                Items = Library:GetConfigNames(),
+                MaxSize = 125,
+                Flag = "SettingManager Config List",
+                Multi = false,
+                Callback = function(Value)
+                    if ConfigTextbox and Value then
+                        ConfigTextbox:Set(Value)
+                    end
+                end
+            })
+
+            ConfigTextbox = ConfigSection:Textbox({
+                Name = "Config Name",
+                Default = "",
+                Placeholder = "Config name",
+                Flag = "SettingManager Config Name",
+                Callback = function() end
+            })
+
+            ConfigSection:Button({
+                Name = "Save Config",
+                Callback = function()
+                    local Name = GetName()
+
+                    if Name == "" then
+                        Library:Notify(false, "Enter a config name first")
+                        return
+                    end
+
+                    if Library:SaveConfig(Name) then
+                        RefreshList(Name)
+                    end
+                end
+            })
+
+            ConfigSection:Button({
+                Name = "Load Config",
+                Callback = function()
+                    local Name = GetName()
+
+                    if Name == "" then
+                        Library:Notify(false, "Select or enter a config name first")
+                        return
+                    end
+
+                    Library:LoadConfigFile(Name)
+                end
+            })
+
+            ConfigSection:Button({
+                Name = "Delete Config",
+                Callback = function()
+                    local Name = GetName()
+
+                    if Name == "" then
+                        Library:Notify(false, "Select or enter a config name first")
+                        return
+                    end
+
+                    if Library:DeleteConfig(Name) then
+                        ConfigTextbox:Set("")
+                        RefreshList()
+                        UpdateAutoLabel()
+                    end
+                end
+            })
+
+            ConfigSection:Button({
+                Name = "Refresh List",
+                Callback = function()
+                    RefreshList()
+                end
+            })
+
+            ConfigSection:Button({
+                Name = "Set As Auto Load",
+                Callback = function()
+                    local Name = GetName()
+
+                    if Name == "" or not isfile(Library:ConfigPath(Name)) then
+                        Library:Notify(false, "Save the config first, then set it as auto load")
+                        return
+                    end
+
+                    Library:SetAutoload(Name)
+                    UpdateAutoLabel()
+                    Library:Notify(true, "Auto load config: " .. Name)
+                end
+            })
+
+            ConfigSection:Button({
+                Name = "Remove Auto Load",
+                Callback = function()
+                    Library:RemoveAutoload()
+                    UpdateAutoLabel()
+                    Library:Notify(true, "Removed auto load config")
+                end
+            })
+
+            local KeyList = Library.KeyList
+            Library.KeyList = nil
+
+            local MenuLabel = MenuSection:Label("Menu Keybind", "Left")
+
+            MenuLabel:Keybind({
+                Name = "Menu Keybind",
+                Flag = "SettingManager Menu Keybind",
+                Default = Data.MenuKeybind or Data.menukeybind or Enum.KeyCode.Z,
+                Mode = "toggle",
+                Callback = function()
+                    local Value = Library.Flags["SettingManager Menu Keybind"]
+
+                    if Value and Value.Key then
+                        Library.MenuKeybind = Value.Key
+                    end
+                end
+            })
+
+            Library.KeyList = KeyList
+
+            local ThemeKeys = {"Background", "Inline", "Element", "Border", "Text", "Image", "Inactive Text", "Accent", "Dark Gradient", "Shadow"}
+            local PresetNames = { }
+
+            for Name in Library.Themes do
+                TableInsert(PresetNames, Name)
+            end
+
+            table.sort(PresetNames)
+
+            ThemeSection:Dropdown({
+                Name = "Preset",
+                Items = PresetNames,
+                Default = "Preset",
+                MaxSize = 125,
+                Flag = "SettingManager Theme Preset",
+                Multi = false,
+                Callback = function(Value)
+                    local Preset = Library.Themes[Value]
+
+                    if not Preset then
+                        return
+                    end
+
+                    for Key, Color in Preset do
+                        local Picker = Library.ThemeColorpickers[Key]
+
+                        if Picker then
+                            Picker:Set(Color)
+                        end
+                    end
+                end
+            })
+
+            for _, Key in ThemeKeys do
+                local ThemeLabel = ThemeSection:Label(Key, "Left")
+
+                Library.ThemeColorpickers[Key] = ThemeLabel:Colorpicker({
+                    Name = Key,
+                    Default = Library.Theme[Key],
+                    Alpha = 0,
+                    Flag = "Theme " .. Key,
+                    Callback = function(Color)
+                        Library:ChangeTheme(Key, Color)
+                    end
+                })
+            end
+
+            UpdateAutoLabel()
+
+            return SettingsPage
+        end
+
         Library.Window = function(self, Data)
             Data = Data or { }
+
+            if Data.ConfigFolder or Data.configfolder then
+                Library:SetConfigFolder(Data.ConfigFolder or Data.configfolder)
+            end
 
             local Window = {
                 Name = Data.Name or Data.name or "kiwisense",
@@ -7645,6 +8011,10 @@ local Library do
             end)
 
             Window.Items = Items
+
+            if IsMobile then
+                Library:MobileToggle(Window)
+            end
 
             Window:SetOpen(true)
             return setmetatable(Window, self)
@@ -9639,6 +10009,11 @@ local Library do
                 Items["Label"].Instance.Visible = Bool
             end
 
+            function Label:SetText(Text)
+                Label.Name = Text
+                Items["Text"].Instance.Text = Text
+            end
+
             function Label:Colorpicker(Data)
                 local Colorpicker = {
                     Window = self.Window,
@@ -9883,51 +10258,23 @@ local Library do
     end
 
     Library.Init = function(self)
-        local AutoloadConfig = readfile(Library.Folders.Directory .. "/AutoLoadConfig (do not modify this).json")
-        local AutoloadTheme = readfile(Library.Folders.Directory .. "/AutoLoadTheme (do not modify this).json")
+        local Name = Library:GetAutoload()
 
-        if AutoloadConfig ~= "" then
-            local Success, Result = Library:LoadConfig(AutoloadConfig)
-
-            if Success then
-                Library:Notification({
-                    Name = "Success",
-                    Description = "Successfully loaded autoload config",
-                    Duration = 5,
-                    Icon = "116339777575852",
-                    IconColor = Color3.fromRGB(52, 255, 164)
-                })
-            else
-                Library:Notification({
-                    Name = "Error!",
-                    Description = "Failed to load autoload config, error:\n" .. Result,
-                    Duration = 5,
-                    Icon = "97118059177470",
-                    IconColor = Color3.fromRGB(255, 120, 120)
-                })
-            end
+        if not Name then
+            return
         end
 
-        if AutoloadTheme ~= "" then
-            local Success, Result = Library:LoadTheme(AutoloadTheme)
+        if not isfile(Library:ConfigPath(Name)) then
+            Library:Notify(false, "Auto load config not found: " .. Name)
+            return
+        end
 
-            if Success then
-                Library:Notification({
-                    Name = "Success",
-                    Description = "Successfully loaded autoload theme",
-                    Duration = 5,
-                    Icon = "116339777575852",
-                    IconColor = Color3.fromRGB(52, 255, 164)
-                })
-            else
-                Library:Notification({
-                    Name = "Error!",
-                    Description = "Failed to load autoload theme, error:\n" .. Result,
-                    Duration = 5,
-                    Icon = "97118059177470",
-                    IconColor = Color3.fromRGB(255, 120, 120)
-                })
-            end
+        local Success, Result = Library:LoadConfig(readfile(Library:ConfigPath(Name)))
+
+        if Success then
+            Library:Notify(true, "Auto loaded config: " .. Name)
+        else
+            Library:Notify(false, "Failed to auto load config:\n" .. tostring(Result))
         end
     end
 end
