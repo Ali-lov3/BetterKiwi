@@ -1312,6 +1312,86 @@ local Library do
 
     local IsMobile = UserInputService.TouchEnabled or false
 
+    local Lucide
+
+    pcall(function()
+        Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/icons.lua"))()
+    end)
+
+    local function ResolveIcon(Icon)
+        if type(Icon) == "number" then
+            return "rbxassetid://" .. Icon
+        end
+
+        if type(Icon) == "string" then
+            if string.match(Icon, "^rbxassetid://") then
+                return Icon
+            end
+
+            if string.match(Icon, "^%d+$") then
+                return "rbxassetid://" .. Icon
+            end
+
+            local Name = string.lower(Icon)
+
+            if type(Lucide) == "function" then
+                local Ok, Data = pcall(Lucide, Name)
+
+                if Ok and type(Data) == "table" then
+                    local Id = Data.id or Data.Id or Data[1]
+                    local Size = Data.imageRectSize or Data.ImageRectSize or Data[2]
+                    local Offset = Data.imageRectOffset or Data.imageRectPosition or Data.ImageRectOffset or Data[3]
+
+                    if Id then
+                        return "rbxassetid://" .. tostring(Id), Offset, Size
+                    end
+                end
+            elseif type(Lucide) == "table" then
+                for _, Set in { Lucide["48px"], Lucide["256px"], Lucide } do
+                    if type(Set) == "table" then
+                        local Data = Set[Name]
+
+                        if type(Data) == "table" and Data[1] then
+                            return "rbxassetid://" .. tostring(Data[1]), Data[3], Data[2]
+                        end
+                    end
+                end
+            end
+        end
+
+        return "rbxassetid://0"
+    end
+
+    local function ToVector2(Value)
+        if typeof(Value) == "Vector2" then
+            return Value
+        end
+
+        if type(Value) == "table" then
+            return Vector2.new(Value[1] or Value.X or 0, Value[2] or Value.Y or 0)
+        end
+
+        return Vector2.new(0, 0)
+    end
+
+    local function ApplyIcon(Object, Icon)
+        if not Icon then
+            return
+        end
+
+        local Image, Offset, Size = ResolveIcon(Icon)
+
+        Object.Image = Image
+
+        if Offset then
+            Object.ImageRectOffset = ToVector2(Offset)
+        end
+
+        if Size then
+            Object.ImageRectSize = ToVector2(Size)
+        end
+    end
+
     gethui = gethui or function()
         return CoreGui
     end
@@ -1324,7 +1404,6 @@ local Library do
         MenuKeybind = tostring(Enum.KeyCode.Z),
         Flags = { },
         IgnoredFlags = { },
-        MobileButton = nil,
 
         Tween = {
             Time = 0.3,
@@ -7124,55 +7203,6 @@ local Library do
             return KeybindList
         end
 
-        Library.MobileToggle = function(self, Window)
-            local Button = Instances:Create("TextButton", {
-                Parent = Library.Holder.Instance,
-                Name = "\0",
-                FontFace = Library.Font,
-                Text = "",
-                AutoButtonColor = false,
-                BorderSizePixel = 0,
-                Size = UDim2New(0, 44, 0, 44),
-                Position = UDim2New(0, 12, 0.5, -22),
-                ZIndex = 50,
-                BackgroundColor3 = Library.Theme.Background
-            })  Button:AddToTheme({BackgroundColor3 = "Background"})
-
-            Instances:Create("UICorner", {
-                Parent = Button.Instance,
-                Name = "\0",
-                CornerRadius = UDimNew(0, 10)
-            })
-
-            local Stroke = Instances:Create("UIStroke", {
-                Parent = Button.Instance,
-                Name = "\0",
-                Color = Library.Theme.Border,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            })  Stroke:AddToTheme({Color = "Border"})
-
-            Instances:Create("ImageLabel", {
-                Parent = Button.Instance,
-                Name = "\0",
-                BackgroundTransparency = 1,
-                AnchorPoint = Vector2New(0.5, 0.5),
-                Position = UDim2New(0.5, 0, 0.5, 0),
-                Size = UDim2New(0, 24, 0, 24),
-                ZIndex = 51,
-                Image = "rbxassetid://" .. tostring(Window.Logo)
-            })
-
-            Button:MakeDraggable()
-
-            Button:Connect("MouseButton1Click", function()
-                Window:SetOpen(not Window.IsOpen)
-            end)
-
-            Library.MobileButton = Button
-
-            return Button
-        end
-
         Library.SettingManager = function(self, Data)
             Data = Data or { }
 
@@ -7821,11 +7851,11 @@ local Library do
 
                     Items["FloatingButton"]:MakeDraggable()
 
-                    Instances:Create("ImageLabel", {
+                    Items["FloatingIcon"] = Instances:Create("ImageLabel", {
                         Parent = Items["FloatingButton"].Instance,
                         BorderColor3 = FromRGB(0, 0, 0),
                         Name = "\0",
-                        Image = "rbxassetid://" .. Window.Logo,
+                        Image = "",
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2New(0.5, 0.5),
                         Position = UDim2New(0.5, 0, 0.5, 0),
@@ -7834,6 +7864,8 @@ local Library do
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
+
+                    ApplyIcon(Items["FloatingIcon"].Instance, Data.MobileIcon or Data.mobileicon or "menu")
 
                     Instances:Create("UICorner", {
                         Parent = Items["FloatingButton"].Instance,
@@ -8011,10 +8043,6 @@ local Library do
             end)
 
             Window.Items = Items
-
-            if IsMobile then
-                Library:MobileToggle(Window)
-            end
 
             Window:SetOpen(true)
             return setmetatable(Window, self)
