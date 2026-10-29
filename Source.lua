@@ -2103,7 +2103,7 @@ local Library do
         },
     }
 
-    Library.Theme = TableClone(Themes["Preset"])
+    Library.Theme = TableClone(Themes["Ice"])
     Library.Themes = Themes
 
     Library.SetConfigFolder = function(self, Name)
@@ -5359,6 +5359,16 @@ local Library do
             getgenv().Options[Data.Flag] = Keybind
 
             Items["KeyButton"]:Connect("MouseButton1Click", function()
+                if IsMobile then
+                    if Keybind.Mode == "hold" then
+                        Keybind:Press(not Keybind.Toggled)
+                    else
+                        Keybind:Press()
+                    end
+
+                    return
+                end
+
                 if Keybind.Picking then
                     return
                 end
@@ -7056,6 +7066,10 @@ local Library do
         end
 
         Library.KeybindsList = function(self)
+            if IsMobile then
+                return
+            end
+
             local KeybindList = { }
             self.KeyList = KeybindList
 
@@ -7425,7 +7439,7 @@ local Library do
             ThemeSection:Dropdown({
                 Name = "Preset",
                 Items = PresetNames,
-                Default = "Preset",
+                Default = "Ice",
                 MaxSize = 125,
                 Flag = "SettingManager Theme Preset",
                 Multi = false,
