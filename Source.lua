@@ -6962,8 +6962,8 @@ local Library do
                     Parent = Library.Holder.Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(0.5, 0),
-                    Position = UDim2New(0.5, 0, 0, 15),
+                    AnchorPoint = Vector2New(1, 0),
+                    Position = UDim2New(1, -15, 0, 15),
                     Size = UDim2New(0, 100, 0, 35),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -7462,7 +7462,7 @@ local Library do
                 Logo = Data.Logo or Data.logo or "135215559087473",
                 FadeSpeed = Data.FadeSpeed or Data.fadespeed or 0.2,
                 Version = Data.Version or Data.version or "v1.0.0 alpha",
-                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, 400, 0, 290),
+                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.75, 400, 720), 0, MathClamp(Camera.ViewportSize.Y * 0.88, 290, 500)),
 
                 Pages = { },
                 SubPages = { },
@@ -7477,7 +7477,7 @@ local Library do
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0, 0),
-                    Position = IsMobile and UDim2New(0, MathMax((Camera.ViewportSize.X - 400) / 2, 0), 0, 10) or UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 3.5),
+                    Position = IsMobile and UDim2New(0, MathMax((Camera.ViewportSize.X - Window.Size.X.Offset) / 2, 0), 0, MathMax((Camera.ViewportSize.Y - Window.Size.Y.Offset) / 2, 0)) or UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 3.5),
                     Size = Window.Size,
                     ZIndex = 2,
                     BorderSizePixel = 0,
@@ -7486,7 +7486,7 @@ local Library do
                 })  Items["MainFrame"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Items["MainFrame"]:MakeDraggable()
-                Items["MainFrame"]:MakeResizeable(Vector2New(Window.Size.X.Offset, Window.Size.Y.Offset), Vector2New(9999, 9999))
+                Items["MainFrame"]:MakeResizeable(IsMobile and Vector2New(400, 290) or Vector2New(Window.Size.X.Offset, Window.Size.Y.Offset), Vector2New(9999, 9999))
 
                 Instances:Create("UICorner", {
                     Parent = Items["MainFrame"].Instance,
