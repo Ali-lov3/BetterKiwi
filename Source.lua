@@ -2038,6 +2038,19 @@ local Library do
 
     local Themes = {
         ["Preset"] = {
+            ["Background"] = FromRGB(19, 19, 24),
+            ["Inline"] = FromRGB(27, 27, 34),
+            ["Shadow"] = FromRGB(0, 0, 0),
+            ["Text"] = FromRGB(255, 255, 255),
+            ["Image"] = FromRGB(255, 255, 255),
+            ["Dark Gradient"] = FromRGB(235, 235, 235),
+            ["Inactive Text"] = FromRGB(140, 140, 150),
+            ["Element"] = FromRGB(38, 38, 47),
+            ["Accent"] = FromRGB(181, 66, 196),
+            ["Border"] = FromRGB(36, 36, 45)
+        },
+
+        ["Ice"] = {
             ["Background"] = FromRGB(16, 18, 21),
             ["Inline"] = FromRGB(22, 25, 29),
             ["Shadow"] = FromRGB(0, 0, 0),
@@ -2648,15 +2661,17 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(1, -2, 1, -2),
                     AnchorPoint = Vector2New(0.5, 0.5),
-                    Image = "rbxassetid://116339777575852",
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0.5, 0, 0.5, 0),
                     ImageTransparency = 1,
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255),
-                    ImageColor3 = FromRGB(0, 0, 0)
+                    ImageColor3 = FromRGB(255, 255, 255)
                 })
+
+                ApplyIcon(Items["Check"].Instance, "check")
 
                 Items["SubElements"] = Instances:Create("Frame", {
                     Parent = Items["Toggle"].Instance,
@@ -5513,6 +5528,9 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Title"]:AddToTheme({TextColor3 = "Text"})
 
+                Items["Version"].Instance.Visible = false
+                Items["Logo"].Instance.Visible = Window.ShowLogo
+
                 Items["CloseButton"] = Instances:Create("ImageButton", {
                     Parent = Items["Topbar"].Instance,
                     Name = "\0",
@@ -6345,7 +6363,7 @@ local Library do
                     Text = "Global chat",
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    Position = UDim2New(0, 37, 0.5, 0),
+                    Position = UDim2New(0, 12, 0.5, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -7462,6 +7480,7 @@ local Library do
                 Logo = Data.Logo or Data.logo or "135215559087473",
                 FadeSpeed = Data.FadeSpeed or Data.fadespeed or 0.2,
                 Version = Data.Version or Data.version or "v1.0.0 alpha",
+                ShowLogo = Data.ShowLogo or Data.showlogo or false,
                 Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.58, 400, 640), 0, MathClamp(Camera.ViewportSize.Y * 0.68, 290, 420)),
 
                 Pages = { },
@@ -7498,10 +7517,10 @@ local Library do
                     Parent = Items["MainFrame"].Instance,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(0.5, 0),
+                    AnchorPoint = Vector2New(0, 0),
                     BorderSizePixel = 0,
-                    Position = UDim2New(0.5, 0, 1, 8),
-                    Size = UDim2New(0, 0, 0, 45),
+                    Position = UDim2New(0, 8, 0, 43),
+                    Size = UDim2New(0, 0, 0, 40),
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(16, 18, 21)
@@ -7510,7 +7529,7 @@ local Library do
                 Instances:Create("UICorner", {
                     Parent = Items["Pages"].Instance,
                     Name = "\0",
-                    CornerRadius = UDimNew(1, 0)
+                    CornerRadius = UDimNew(0, 8)
                 })
 
                 Items["Holder"] = Instances:Create("Frame", {
@@ -7636,7 +7655,7 @@ local Library do
                     RichText = true,
                     TextColor3 = FromRGB(255, 255, 255),
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Text = Window.Name,
+                    Text = Window.Name .. " | " .. Window.Version,
                     BackgroundTransparency = 1,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Position = UDim2New(0, 37, 0.5, 0),
@@ -7842,6 +7861,8 @@ local Library do
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Input"]:AddToTheme({TextColor3 = "Text", PlaceholderColor3 = "Inactive Text"})
+
+                Items["Search"].Instance.Visible = false
 
                 if IsMobile then
                     Items["FloatingButton"] = Instances:Create("TextButton", {
@@ -8094,8 +8115,8 @@ local Library do
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0, 7, 0, 48),
-                    Size = UDim2New(1, -14, 1, -55),
+                    Position = UDim2New(0, 7, 0, 56),
+                    Size = UDim2New(1, -14, 1, -63),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -8130,7 +8151,7 @@ local Library do
                 Instances:Create("UICorner", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
-                    CornerRadius = UDimNew(1, 0)
+                    CornerRadius = UDimNew(0, 6)
                 })
 
                 Items["Icon"] = Instances:Create("ImageLabel", {
@@ -8212,16 +8233,16 @@ local Library do
                 end
 
                 if Page.SubPages then
-                    Items["Columns"].Instance.Size = UDim2New(1, -14, 1, -108)
+                    Items["Columns"].Instance.Size = UDim2New(1, -14, 1, -112)
 
                     Items["SubPages"] = Instances:Create("Frame", {
                         Parent = Items["PageContent"].Instance,
                         Name = "\0",
                         BorderColor3 = FromRGB(0, 0, 0),
-                        AnchorPoint = Vector2New(0.5, 1),
+                        AnchorPoint = Vector2New(0, 1),
                         BorderSizePixel = 0,
-                        Position = UDim2New(0.5, 0, 1, -8),
-                        Size = UDim2New(0, 0, 0, 45),
+                        Position = UDim2New(0, 0, 1, -8),
+                        Size = UDim2New(0, 0, 0, 40),
                         ZIndex = 2,
                         AutomaticSize = Enum.AutomaticSize.X,
                         BackgroundColor3 = FromRGB(22, 25, 29)
@@ -8230,7 +8251,7 @@ local Library do
                     Instances:Create("UICorner", {
                         Parent = Items["SubPages"].Instance,
                         Name = "\0",
-                        CornerRadius = UDimNew(1, 0)
+                        CornerRadius = UDimNew(0, 8)
                     })
 
                     Items["Holder"] = Instances:Create("Frame", {
@@ -8392,7 +8413,7 @@ local Library do
                 Instances:Create("UICorner", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
-                    CornerRadius = UDimNew(1, 0)
+                    CornerRadius = UDimNew(0, 6)
                 })
 
                 Items["Icon"] = Instances:Create("ImageLabel", {

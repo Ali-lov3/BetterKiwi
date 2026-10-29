@@ -2,7 +2,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ali-l
 
 local Window = Library:Window({
     Name = "Example",
-    Version = "Example",
+    Version = "Showcase",
     Logo = "77434646025119",
     Size = UDim2.new(0, 650, 0, 500),
     FadeSpeed = 0.2,
