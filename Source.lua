@@ -7462,7 +7462,7 @@ local Library do
                 Logo = Data.Logo or Data.logo or "135215559087473",
                 FadeSpeed = Data.FadeSpeed or Data.fadespeed or 0.2,
                 Version = Data.Version or Data.version or "v1.0.0 alpha",
-                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.75, 400, 720), 0, MathClamp(Camera.ViewportSize.Y * 0.88, 290, 500)),
+                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.58, 400, 640), 0, MathClamp(Camera.ViewportSize.Y * 0.68, 290, 420)),
 
                 Pages = { },
                 SubPages = { },
