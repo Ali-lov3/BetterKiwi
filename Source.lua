@@ -2038,14 +2038,14 @@ local Library do
 
     local Themes = {
         ["Preset"] = {
-            ["Background"] = FromRGB(19, 19, 24),
-            ["Inline"] = FromRGB(27, 27, 34),
+            ["Background"] = FromRGB(21, 21, 27),
+            ["Inline"] = FromRGB(28, 28, 36),
             ["Shadow"] = FromRGB(0, 0, 0),
             ["Text"] = FromRGB(255, 255, 255),
             ["Image"] = FromRGB(255, 255, 255),
             ["Dark Gradient"] = FromRGB(235, 235, 235),
             ["Inactive Text"] = FromRGB(140, 140, 150),
-            ["Element"] = FromRGB(38, 38, 47),
+            ["Element"] = FromRGB(42, 42, 52),
             ["Accent"] = FromRGB(181, 66, 196),
             ["Border"] = FromRGB(36, 36, 45)
         },
@@ -5528,9 +5528,6 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Title"]:AddToTheme({TextColor3 = "Text"})
 
-                Items["Version"].Instance.Visible = false
-                Items["Logo"].Instance.Visible = Window.ShowLogo
-
                 Items["CloseButton"] = Instances:Create("ImageButton", {
                     Parent = Items["Topbar"].Instance,
                     Name = "\0",
@@ -7481,7 +7478,7 @@ local Library do
                 FadeSpeed = Data.FadeSpeed or Data.fadespeed or 0.2,
                 Version = Data.Version or Data.version or "v1.0.0 alpha",
                 ShowLogo = Data.ShowLogo or Data.showlogo or false,
-                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.58, 400, 640), 0, MathClamp(Camera.ViewportSize.Y * 0.68, 290, 420)),
+                Size = not IsMobile and UDim2New(0, 659, 0, 511) or UDim2New(0, MathClamp(Camera.ViewportSize.X * 0.58, 400, 640), 0, MathClamp(Camera.ViewportSize.Y * 0.8, 290, 470)),
 
                 Pages = { },
                 SubPages = { },
@@ -7496,7 +7493,7 @@ local Library do
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(0, 0),
-                    Position = IsMobile and UDim2New(0, MathMax((Camera.ViewportSize.X - Window.Size.X.Offset) / 2, 0), 0, MathMax((Camera.ViewportSize.Y - Window.Size.Y.Offset) / 2, 0)) or UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 3.5),
+                    Position = IsMobile and UDim2New(0, MathMax((Camera.ViewportSize.X - Window.Size.X.Offset) / 2, 0), 0, MathMax(Camera.ViewportSize.Y * 0.12, 0)) or UDim2New(0, Camera.ViewportSize.X / 3.5, 0, Camera.ViewportSize.Y / 3.5),
                     Size = Window.Size,
                     ZIndex = 2,
                     BorderSizePixel = 0,
@@ -7524,7 +7521,7 @@ local Library do
                     ZIndex = 2,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = FromRGB(16, 18, 21)
-                })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Background"})
+                })  Items["Pages"]:AddToTheme({BackgroundColor3 = "Inline"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Pages"].Instance,
@@ -7584,7 +7581,7 @@ local Library do
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(22, 25, 29)
-                })  Items["Topbar"]:AddToTheme({BackgroundColor3 = "Inline"})
+                })  Items["Topbar"]:AddToTheme({BackgroundColor3 = "Background"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Topbar"].Instance,
@@ -7602,7 +7599,7 @@ local Library do
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(22, 25, 29)
-                }):AddToTheme({BackgroundColor3 = "Inline"})
+                }):AddToTheme({BackgroundColor3 = "Background"})
 
                 Instances:Create("Frame", {
                     Parent = Items["Topbar"].Instance,
@@ -7721,6 +7718,12 @@ local Library do
                     Name = "\0",
                     PaddingRight = UDimNew(0, 0)
                 })
+
+                Items["Version"]:Clean()
+
+                if not Window.ShowLogo then
+                    Items["Logo"]:Clean()
+                end
 
                 Items["CloseButton"] = Instances:Create("ImageButton", {
                     Parent = Items["Topbar"].Instance,
@@ -8146,7 +8149,7 @@ local Library do
                     ZIndex = 2,
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(23, 26, 30)
-                })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Inline"})
+                })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Element"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Inactive"].Instance,
@@ -8408,7 +8411,7 @@ local Library do
                     ZIndex = 2,
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(16, 18, 21)
-                })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Background"})
+                })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Element"})
 
                 Instances:Create("UICorner", {
                     Parent = Items["Inactive"].Instance,
