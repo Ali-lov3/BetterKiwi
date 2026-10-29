@@ -7054,12 +7054,53 @@ local Library do
                 })
             end
 
+            local BaseText = Text
+            local GameName = "Loading"
+            local Frames = 0
+            local LastUpdate = os.clock()
+
+            Library:Thread(function()
+                local Success, Info = pcall(function()
+                    return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+                end)
+
+                if Success and Info and Info.Name then
+                    GameName = Info.Name
+                else
+                    GameName = "Unknown"
+                end
+            end)
+
+            local function Refresh(Fps)
+                local Ping = 0
+
+                pcall(function()
+                    Ping = MathFloor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+                end)
+
+                Items["Text"].Instance.Text = StringFormat("%s | %d fps | %d ms | %s", BaseText, Fps, Ping, GameName)
+            end
+
+            Refresh(0)
+
+            Library:Connect(RunService.RenderStepped, function()
+                Frames += 1
+
+                local Now = os.clock()
+
+                if Now - LastUpdate >= 0.5 then
+                    Refresh(MathFloor(Frames / (Now - LastUpdate) + 0.5))
+                    Frames = 0
+                    LastUpdate = Now
+                end
+            end)
+
             function Watermark:SetVisibility(Bool)
                 Items["Watermark"].Instance.Visible = Bool
             end
 
             function Watermark:SetText(Text)
-                Items["Text"].Instance.Text = Text
+                BaseText = Text
             end
 
             return Watermark
