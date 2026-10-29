@@ -1312,83 +1312,85 @@ local Library do
 
     local IsMobile = UserInputService.TouchEnabled or false
 
-    local Lucide
+    local ApplyIcon do
+        local Lucide
 
-    pcall(function()
-        Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/icons.lua"))()
-    end)
+        pcall(function()
+            Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/icons.lua"))()
+        end)
 
-    local function ResolveIcon(Icon)
-        if type(Icon) == "number" then
-            return "rbxassetid://" .. Icon
-        end
-
-        if type(Icon) == "string" then
-            if string.match(Icon, "^rbxassetid://") then
-                return Icon
-            end
-
-            if string.match(Icon, "^%d+$") then
+        local function ResolveIcon(Icon)
+            if type(Icon) == "number" then
                 return "rbxassetid://" .. Icon
             end
 
-            local Name = string.lower(Icon)
-
-            if type(Lucide) == "function" then
-                local Ok, Data = pcall(Lucide, Name)
-
-                if Ok and type(Data) == "table" then
-                    local Id = Data.id or Data.Id or Data[1]
-                    local Size = Data.imageRectSize or Data.ImageRectSize or Data[2]
-                    local Offset = Data.imageRectOffset or Data.imageRectPosition or Data.ImageRectOffset or Data[3]
-
-                    if Id then
-                        return "rbxassetid://" .. tostring(Id), Offset, Size
-                    end
+            if type(Icon) == "string" then
+                if string.match(Icon, "^rbxassetid://") then
+                    return Icon
                 end
-            elseif type(Lucide) == "table" then
-                for _, Set in { Lucide["48px"], Lucide["256px"], Lucide } do
-                    if type(Set) == "table" then
-                        local Data = Set[Name]
 
-                        if type(Data) == "table" and Data[1] then
-                            return "rbxassetid://" .. tostring(Data[1]), Data[3], Data[2]
+                if string.match(Icon, "^%d+$") then
+                    return "rbxassetid://" .. Icon
+                end
+
+                local Name = string.lower(Icon)
+
+                if type(Lucide) == "function" then
+                    local Ok, Data = pcall(Lucide, Name)
+
+                    if Ok and type(Data) == "table" then
+                        local Id = Data.id or Data.Id or Data[1]
+                        local Size = Data.imageRectSize or Data.ImageRectSize or Data[2]
+                        local Offset = Data.imageRectOffset or Data.imageRectPosition or Data.ImageRectOffset or Data[3]
+
+                        if Id then
+                            return "rbxassetid://" .. tostring(Id), Offset, Size
+                        end
+                    end
+                elseif type(Lucide) == "table" then
+                    for _, Set in { Lucide["48px"], Lucide["256px"], Lucide } do
+                        if type(Set) == "table" then
+                            local Data = Set[Name]
+
+                            if type(Data) == "table" and Data[1] then
+                                return "rbxassetid://" .. tostring(Data[1]), Data[3], Data[2]
+                            end
                         end
                     end
                 end
             end
+
+            return "rbxassetid://0"
         end
 
-        return "rbxassetid://0"
-    end
+        local function ToVector2(Value)
+            if typeof(Value) == "Vector2" then
+                return Value
+            end
 
-    local function ToVector2(Value)
-        if typeof(Value) == "Vector2" then
-            return Value
+            if type(Value) == "table" then
+                return Vector2.new(Value[1] or Value.X or 0, Value[2] or Value.Y or 0)
+            end
+
+            return Vector2.new(0, 0)
         end
 
-        if type(Value) == "table" then
-            return Vector2.new(Value[1] or Value.X or 0, Value[2] or Value.Y or 0)
-        end
+        function ApplyIcon(Object, Icon)
+            if not Icon then
+                return
+            end
 
-        return Vector2.new(0, 0)
-    end
+            local Image, Offset, Size = ResolveIcon(Icon)
 
-    local function ApplyIcon(Object, Icon)
-        if not Icon then
-            return
-        end
+            Object.Image = Image
 
-        local Image, Offset, Size = ResolveIcon(Icon)
+            if Offset then
+                Object.ImageRectOffset = ToVector2(Offset)
+            end
 
-        Object.Image = Image
-
-        if Offset then
-            Object.ImageRectOffset = ToVector2(Offset)
-        end
-
-        if Size then
-            Object.ImageRectSize = ToVector2(Size)
+            if Size then
+                Object.ImageRectSize = ToVector2(Size)
+            end
         end
     end
 
@@ -2331,7 +2333,7 @@ local Library do
             Name = Success and "Success" or "Error!",
             Description = Description,
             Duration = 5,
-            Icon = Success and "116339777575852" or "97118059177470",
+            Icon = Success and "check" or "x",
             IconColor = Success and FromRGB(52, 255, 164) or FromRGB(255, 120, 120)
         })
     end
@@ -6845,13 +6847,15 @@ local Library do
                         ImageColor3 = Notification.IconColor,
                         BorderColor3 = FromRGB(0, 0, 0),
                         AnchorPoint = Vector2New(1, 0),
-                        Image = "rbxassetid://"..Notification.Icon,
+                        Image = "",
                         BackgroundTransparency = 1,
                         Position = UDim2New(1, 5, 0, 0),
                         Size = UDim2New(0, 22, 0, 22),
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
+
+                    ApplyIcon(Items["Icon"].Instance, Notification.Icon)
                 end
 
                 Items["Title"] = Instances:Create("TextLabel", {
@@ -6991,13 +6995,15 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Logo,
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
+
+                ApplyIcon(Items["Logo"].Instance, Logo)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Watermark"].Instance,
@@ -7207,7 +7213,7 @@ local Library do
             Data = Data or { }
 
             local Window = self
-            local Icon = Data.Icon or Data.icon or Window.Logo
+            local Icon = Data.Icon or Data.icon or "settings"
 
             if Data.ConfigFolder or Data.configfolder then
                 Library:SetConfigFolder(Data.ConfigFolder or Data.configfolder)
@@ -7222,19 +7228,19 @@ local Library do
 
             local ConfigSection = SettingsPage:Section({
                 Name = "Config",
-                Icon = Icon,
+                Icon = "folder",
                 Side = 1
             })
 
             local MenuSection = SettingsPage:Section({
                 Name = "Menu",
-                Icon = Icon,
+                Icon = "keyboard",
                 Side = 2
             })
 
             local ThemeSection = SettingsPage:Section({
                 Name = "Theme",
-                Icon = Icon,
+                Icon = "palette",
                 Side = 2
             })
 
@@ -7609,13 +7615,15 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Window.Logo,
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 7, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
+
+                ApplyIcon(Items["Logo"].Instance, Window.Logo)
 
                 Items["Title"] = Instances:Create("TextLabel", {
                     Parent = Items["Topbar"].Instance,
@@ -8132,13 +8140,15 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..Page.Icon,
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Image"})
+
+                ApplyIcon(Items["Icon"].Instance, Page.Icon)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Inactive"].Instance,
@@ -8392,13 +8402,15 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 22, 0, 22),
                     AnchorPoint = Vector2New(0, 0.5),
-                    Image = "rbxassetid://"..SubPage.Icon,
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 5, 0.5, 0),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Image"})
+
+                ApplyIcon(Items["Icon"].Instance, SubPage.Icon)
 
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Inactive"].Instance,
@@ -9417,13 +9429,15 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2New(0, 18, 0, 18),
                     AnchorPoint = Vector2New(1, 0.5),
-                    Image = "rbxassetid://"..Section.Icon,
+                    Image = "",
                     BackgroundTransparency = 1,
                     Position = UDim2New(1, -7, 0.5, -1),
                     ZIndex = 2,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Icon"]:AddToTheme({ImageColor3 = "Accent"})
+
+                ApplyIcon(Items["Icon"].Instance, Section.Icon)
 
                 Instances:Create("Frame", {
                     Parent = Items["Topbar"].Instance,

@@ -3,25 +3,25 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ali-l
 local Window = Library:Window({
     Name = "Example",
     Version = "Example",
-    Logo = "116339777575852",
+    Logo = "77434646025119",
     Size = UDim2.new(0, 650, 0, 500),
     FadeSpeed = 0.2,
     ConfigFolder = "ExampleConfigs"
 })
 
-Library:Watermark("Example", "116339777575852")
+Library:Watermark("Example", "77434646025119")
 Library:KeybindsList()
 
 local ExamplePage = Window:Page({
     Name = "Example",
-    Icon = "116339777575852",
+    Icon = "home",
     Columns = 2,
     SubPages = false
 })
 
 local ExampleLeftSection = ExamplePage:Section({
     Name = "Example Left",
-    Icon = "116339777575852",
+    Icon = "sliders-horizontal",
     Side = 1
 })
 
@@ -69,7 +69,7 @@ ExampleLeftSection:Textbox({
 
 local ExampleRightSection = ExamplePage:Section({
     Name = "Example Right",
-    Icon = "116339777575852",
+    Icon = "list",
     Side = 2
 })
 
@@ -104,7 +104,7 @@ ExampleRightSection:Button({
             Name = "Example",
             Description = "Example Notification",
             Duration = 5,
-            Icon = "116339777575852",
+            Icon = "bell",
             IconColor = Color3.fromRGB(52, 255, 164)
         })
     end
@@ -124,20 +124,20 @@ ExampleLabel:Colorpicker({
 
 local ExampleSubPagesPage = Window:Page({
     Name = "Example SubPages",
-    Icon = "116339777575852",
+    Icon = "layers",
     Columns = 2,
     SubPages = true
 })
 
 local ExampleSubPageOne = ExampleSubPagesPage:SubPage({
     Name = "Example SubPage 1",
-    Icon = "116339777575852",
+    Icon = "toggle-left",
     Columns = 2
 })
 
 local ExampleSubPageOneSection = ExampleSubPageOne:Section({
     Name = "Example SubPage 1 Section",
-    Icon = "116339777575852",
+    Icon = "settings",
     Side = 1
 })
 
@@ -165,13 +165,13 @@ ExampleSubPageOneSection:Slider({
 
 local ExampleSubPageTwo = ExampleSubPagesPage:SubPage({
     Name = "Example SubPage 2",
-    Icon = "116339777575852",
+    Icon = "chevrons-down",
     Columns = 2
 })
 
 local ExampleSubPageTwoSection = ExampleSubPageTwo:Section({
     Name = "Example SubPage 2 Section",
-    Icon = "116339777575852",
+    Icon = "mouse-pointer-click",
     Side = 2
 })
 
@@ -196,7 +196,7 @@ ExampleSubPageTwoSection:Button({
 
 Window:SettingManager({
     Name = "Settings",
-    Icon = "116339777575852",
+    Icon = "settings",
     MenuKeybind = Enum.KeyCode.Z
 })
 
